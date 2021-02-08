@@ -12,7 +12,7 @@ import os
 
 
 gan_path="genrator_save/genrator_weights"
-checkpoint_path = "model_save/cp.ckpt"
+AE_path = "AE_save/cp.ckpt"
 noise_dim = 20
 latent_dim = 64
 init_w=keras.initializers.RandomNormal(mean=0,stddev=0.05)

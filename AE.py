@@ -6,55 +6,17 @@ from tensorflow.keras.datasets import mnist
 from collections import Counter
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import losses
-from util import build_genrator,build_encoder,build_decoder,load_dataset,checkpoint_path,noise_dim
+from util import build_genrator,build_encoder,build_decoder,load_dataset,AE_path,noise_dim
 import numpy as np
 import os
 
 latent_dim = 64
 noise_sigma = 0.35
 train_AE = False
-plot_images=False
+plot_images=True
 interpolate=True
 sml_train_size = 50
-#
-#
-# def load_dataset():
-# 	# load train and test images, and pad & reshape them to (-1,32,32,1)
-# 	(x_train, y_train), (x_test, y_test) = mnist.load_data()
-# 	x_train = np.reshape(x_train, (len(x_train), 28, 28, 1)).astype('float32') / 255.0
-# 	x_test = np.reshape(x_test, (len(x_test), 28, 28, 1)).astype('float32') / 255.0
-# 	x_train = np.pad(x_train, ((0,0),(2, 2), (2, 2),(0,0)),mode='constant')
-# 	x_test = np.pad(x_test, ((0,0),(2, 2), (2, 2),(0,0)),mode='constant')
-# 	print(x_train.shape)
-# 	print(x_test.shape)
-# 	y_train = keras.utils.to_categorical(y_train, num_classes=10, dtype='float32')
-# 	y_test = keras.utils.to_categorical(y_test, num_classes=10, dtype='float32')
-# 	return x_train,y_train,x_test,y_test
-#
-#
-# def build_encoder():
-# 	encoder = Sequential()
-# 	encoder.add(layers.Conv2D(16, (4, 4), strides=(2,2), activation='relu', padding='same', input_shape=(32,32,1)))
-# 	encoder.add(layers.Conv2D(32, (3, 3), strides=(2,2), activation='relu', padding='same'))
-# 	encoder.add(layers.Conv2D(64, (3, 3), strides=(2,2), activation='relu', padding='same'))
-# 	encoder.add(layers.Conv2D(96, (3, 3), strides=(2,2), activation='relu', padding='same'))
-# 	encoder.add(layers.Reshape((2*2*96,)))
-# 	encoder.add(layers.Dense(latent_dim))
-# 	return encoder
-#
-# # at this point the representation is (4, 4, 8) i.e. 128-dimensional
-# def build_decoder():
-# 	decoder = Sequential()
-# 	decoder.add(layers.Dense(2*2*96,activation='relu', input_shape=(latent_dim,)))
-# 	decoder.add(layers.Reshape((2,2,96)))
-# 	decoder.add(layers.Conv2DTranspose(64, (3, 3), strides=(2,2), activation='relu', padding='same'))
-# 	decoder.add(layers.Conv2DTranspose(32, (3, 3), strides=(2,2), activation='relu', padding='same'))
-# 	decoder.add(layers.Conv2DTranspose(16, (4, 4), strides=(2,2), activation='relu', padding='same'))
-# 	decoder.add(layers.Conv2DTranspose(1, (4, 4), strides=(2,2), activation='sigmoid', padding='same'))
-# 	return decoder
-#
 
-# Your code starts here:
 
 # Classifer Network - currently minimal
 def build_classifiar():
@@ -79,7 +41,7 @@ def sec2():
 	encoder = build_encoder()
 	decoder = build_decoder()
 	autoencoder = keras.Model(encoder.inputs, decoder(encoder.outputs))
-	autoencoder.load_weights(checkpoint_path)
+	autoencoder.load_weights(AE_path)
 	train_codes = encoder.predict(x_train[:sml_train_size])
 	test_codes = encoder.predict(x_test)
 	classifier.compile(loss='categorical_crossentropy',optimizer='adam',metrics=['accuracy'])
@@ -115,8 +77,8 @@ def preform_AE ():
 
 
 	if train_AE:
-		checkpoint_dir = os.path.dirname(checkpoint_path)
-		cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+		checkpoint_dir = os.path.dirname(AE_path)
+		cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=AE_path,
 														 save_weights_only=True)
 		autoencoder.fit(x_train + noise_sigma * np.random.randn(*x_train.shape), x_train,
 						epochs=15,
@@ -125,7 +87,7 @@ def preform_AE ():
 						validation_data=(x_test, x_test),
 						callbacks=[cp_callback])
 	else:
-		autoencoder.load_weights(checkpoint_path)
+		autoencoder.load_weights(AE_path)
 
 	if plot_images:
 		decoded_imgs = autoencoder.predict(x_test)
@@ -165,7 +127,7 @@ def interpolate(is_gan=False):
 	encoder = build_encoder()
 	decoder=build_decoder()
 	autoencoder = keras.Model(encoder.inputs, decoder(encoder.outputs))
-	autoencoder.load_weights(checkpoint_path)
+	autoencoder.load_weights(AE_path)
 	if is_gan:
 		genrator=build_genrator()
 		genrator.load_weights("genrator_save/genrator_weights")

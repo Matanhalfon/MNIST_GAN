@@ -7,7 +7,7 @@ from tensorflow.keras.datasets import mnist
 from collections import Counter
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import losses
-from util import  load_dataset,build_encoder,build_decoder,checkpoint_path,noise_dim,build_genrator,build_discriminator,build_Cgenrator,build_Cdiscriminator
+from util import  load_dataset,build_encoder,build_decoder,AE_path,noise_dim,build_genrator,build_discriminator,build_Cgenrator,build_Cdiscriminator
 import numpy as np
 import os
 
@@ -197,7 +197,7 @@ discriminator_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0006)
 encoder = build_encoder()
 decoder = build_decoder()
 autoencoder = keras.Model(encoder.inputs, decoder(encoder.outputs))
-autoencoder.load_weights(checkpoint_path)
+autoencoder.load_weights(AE_path)
 
 ###build GAN arch
 
